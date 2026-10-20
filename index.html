@@ -165,7 +165,7 @@
     <button class="ikonknapp" id="b-lyd" aria-label="Lyd av/på" aria-pressed="false"></button>
     <button class="ikonknapp" id="b-pause" aria-label="Pause">❚❚</button>
     <button class="ikonknapp" id="b-igjen" aria-label="Start på nytt">↻</button>
-    <button class="ikonknapp" id="b-hjem" aria-label="Tilbake til startmenyen (bytt skikjører)"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V20h4.5v-5.5h3V20H18v-9.5" fill="#fff"/></svg></button>
+    <button class="ikonknapp" id="b-hjem" aria-label="Tilbake til hovedmenyen (H)"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.5V20h4.5v-5.5h3V20H18v-9.5" fill="#fff"/></svg></button>
   </div>
   <div id="fremdrift"><span id="pr-spok"></span><span id="pr-meg"></span></div>
   <div id="tidboks"><small>TID</small><div id="tid">0:00,00</div></div>
@@ -228,8 +228,8 @@
     <div id="r-neste"></div>
     <ul id="r-stat"></ul>
     <button class="stor" id="b-igjen2">KJØR IGJEN</button>
-    <button class="sekundaer" id="b-meny2">Bytt skikjører</button>
-    <p class="hint"><span class="pc">Mellomrom eller Enter for ny tur</span><span class="mob">Ny tur tar ett trykk</span></p>
+    <button class="sekundaer" id="b-meny2">Hovedmeny</button>
+    <p class="hint"><span class="pc">Mellomrom for ny tur · H for hovedmeny</span><span class="mob">Ny tur tar ett trykk</span></p>
     <div class="vm-reklame">ALPIN-VM PÅ NRK<small>Crans-Montana, Sveits · 1.–14. februar 2027</small><a id="se-vm" href="#" target="_blank" rel="noopener" hidden>Se alpin-VM</a></div>
   </div>
 </div>
@@ -238,7 +238,7 @@
   <div class="kort" style="padding:22px 18px">
     <div class="skilt" style="margin:0 0 14px">Pause</div><br>
     <button class="stor" id="b-fortsett">FORTSETT</button>
-    <button class="sekundaer" id="b-meny3">Bytt skikjører</button>
+    <button class="sekundaer" id="b-meny3">Hovedmeny</button>
     <p class="hint">Klokka står stille mens spillet er på pause.</p>
     <p class="hint" style="font-size:10px;opacity:.7">Lyd: kubjeller fra Wikimedia Commons («Cowbells from Karnataka», CC BY-SA 4.0)</p>
   </div>
@@ -780,11 +780,13 @@ window.addEventListener('keydown', e => {
   else if (k === ' ' || k === 'Enter') {
     e.preventDefault();
     if (e.repeat) return;
-    if (tilstand === 'meny' || (tilstand === 'mal' && resultatVist)) startTur();
+    if (tilstand === 'meny' || tilstand === 'mal') startTur();
     else if (tilstand === 'pause') fortsett();
+    else if (k === ' ' && (tilstand === 'lop' || tilstand === 'nedtelling')) startTur();   // hurtigtast: Mellomrom starter løpet på nytt
   }
   else if (k === 'Escape' || k === 'p' || k === 'P') { if (tilstand === 'pause') fortsett(); else pause(); }
   else if (k === 'r' || k === 'R') { if (tilstand !== 'meny') startTur(); }
+  else if (k === 'h' || k === 'H') { if (tilstand !== 'meny') tilMeny(); }
   else if (k === 'm' || k === 'M') veksleLyd();
 });
 window.addEventListener('keyup', e => { if (erV(e.key)) taster.v = false; if (erH(e.key)) taster.h = false; if (erN(e.key)) taster.ned = false; });
@@ -1045,7 +1047,7 @@ function simuler(dt) {
       Object.assign(hopper, { aktiv: true, t: 0, dir: 1, tid: 4.6, tekst: 'SE ALPIN-VM PÅ NRK', opp: 20, stopp: true });   // fallskjermhopper med NRK-reklame over målområdet
     }
   }
-  if (tilstand === 'mal') { malTimer += dt; if (malTimer > 6.8 && !resultatVist) visResultat(); }
+  if (tilstand === 'mal') { malTimer += dt; if (malTimer > 2.0 && !resultatVist) visResultat(); }
   oppdaterFallskjerm(dt, lop);
   taOpptak(dt);
   kamera(dt);
