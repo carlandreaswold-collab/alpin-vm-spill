@@ -427,9 +427,9 @@ function byggBane(navn) {
     const bue = 40 * Math.pow(x / 320, 2);
     fjes(mc + x + (r() - 0.5) * 6 + (rad % 2) * 11, MAL_Y + GJERDE + 30 + rad * 20 - bue + (r() - 0.5) * 5, 0.16);
   }
-  // Bålpanne med stort leirbål på hver side av målområdet: rydder plass i publikum og flaggstenger
-  for (const s of [-1, 1]) {
-    const by = MAL_Y + 70, bx = cx(by) + s * (pisteHalv(by) + 120);
+  // Bålpanne med stort leirbål ved utløpet, på høyre side, godt forbi mållinjen: rydder plass i publikum og flaggstenger
+  for (const s of [1]) {
+    const by = MAL_Y + 175, bx = cx(by) + s * (pisteHalv(by) + 120);
     baalpanner.push({ x: bx, y: by, fase: s > 0 ? 1.7 : 0 });
     for (let i = publikum.length - 1; i >= 0; i--) if (Math.hypot(publikum[i].x - bx, (publikum[i].y - by) * 1.6) < 125) publikum.splice(i, 1);
   }
