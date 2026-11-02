@@ -142,6 +142,28 @@
   .medalje.solv { background: radial-gradient(circle at 35% 30%, #fff, #cfd8e6 45%, #8e9bb3); }
   .medalje.bronse { background: radial-gradient(circle at 35% 30%, #ffe0c2, #d98a4a 45%, #9c5524); }
   .medalje.ingen { background: radial-gradient(circle at 35% 30%, #fff, #dbe8fb 50%, #9fb7dd); font-size: 13px; }
+  .gren { margin: 10px 14px 0; font-size: 20px; font-weight: 900; color: var(--navy); letter-spacing: .04em; text-transform: uppercase; }
+  [hidden] { display: none !important; }
+  .tl-knapp { position: absolute; right: max(3vw, env(safe-area-inset-right)); top: calc(2vh + env(safe-area-inset-top)); z-index: 2; font: 900 14px var(--font); letter-spacing: .06em; color: var(--navy); background: var(--gull); border: 3px solid var(--navy); border-radius: 12px; padding: 8px 14px; cursor: pointer; box-shadow: 0 3px 0 var(--navy); }
+  .tl-knapp:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--navy); }
+  .topp { margin: 8px 16px 4px; padding: 8px 10px; border: 3px solid var(--navy); border-radius: 14px; background: #fff7d6; }
+  .topp-tekst { font-weight: 900; font-size: 15px; line-height: 1.3; }
+  .topp-skjema { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 8px; }
+  #r-nick { width: 5.2ch; box-sizing: content-box; font: 900 34px var(--font); letter-spacing: .18em; text-align: center; text-transform: uppercase; color: var(--navy); background: #fff; border: 3px solid var(--navy); border-radius: 10px; padding: 2px 4px 2px 10px; }
+  #r-nick::placeholder { color: #c3cbdc; }
+  .topp .stor { font-size: 16px; padding: 10px 18px; }
+  .tl-tittel { font-size: 34px; font-weight: 900; color: var(--navy); background: var(--gull); padding: 10px 0 6px; letter-spacing: .08em; border-bottom: 4px solid var(--navy); }
+  #tl-faner { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 12px 10px 6px; }
+  #tl-faner button { padding: 5px 10px; border-radius: 12px; border: 3px solid var(--navy); background: #fff; color: var(--navy); font: 900 13px var(--font); cursor: pointer; }
+  #tl-faner button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+  #tl-liste { list-style: none; margin: 8px 18px 0; padding: 0; text-align: left; }
+  #tl-liste li { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-bottom: 2px dashed #e3e9f5; font-weight: 900; font-size: 20px; font-variant-numeric: tabular-nums; }
+  #tl-liste li:last-child { border: 0; }
+  #tl-liste .pl { width: 28px; text-align: right; color: #6a7898; }
+  #tl-liste .nk { flex: 1; letter-spacing: .18em; }
+  #tl-liste li:nth-child(1) .pl { color: #d99a00; } #tl-liste li:nth-child(2) .pl { color: #8e9bb3; } #tl-liste li:nth-child(3) .pl { color: #9c5524; }
+  #tl-liste li.meg { background: #fff7d6; border-radius: 10px; }
+  #tl-status { min-height: 18px; margin: 10px 16px 0; }
   .stortid { font-size: 46px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.1; }
   #r-diff { font-weight: 900; font-size: 16px; min-height: 22px; }
   #r-diff.gronn { color: #1f9d55; } #r-diff.rodd { color: var(--rod); }
@@ -194,6 +216,7 @@
     <p class="styring"><span class="pc">Styr med ← → eller A og D<span class="hockeinfo"> · ↓ eller S: hocke</span></span><span class="mob">Hold på venstre eller høyre side av skjermen<span class="hockeinfo"> · ▼-knappen: hocke</span></span></p>
     <p id="pers"></p>
   </div>
+  <button class="tl-knapp" id="b-tl" hidden>🏆 TOPPLISTE</button>
   <button class="treskilt" id="b-regler" aria-label="Les reglene"><span class="brett">REGLER</span><span class="stolpe"></span></button>
 </div>
 
@@ -221,16 +244,35 @@
 <div id="resultat" class="lag">
   <div class="kort">
     <div class="mal-tittel">MÅL!</div>
+    <div id="r-gren" class="gren"></div>
     <div id="r-medalje" class="medalje ingen">I MÅL</div>
     <div id="r-tid" class="stortid">0:00,00</div>
     <div id="r-diff"></div>
     <div id="r-rekord" class="rekord">NY PERS!</div>
     <div id="r-neste"></div>
+    <div id="r-topp" class="topp" hidden>
+      <div id="r-topp-tekst" class="topp-tekst"></div>
+      <div id="r-topp-skjema" class="topp-skjema" hidden>
+        <input id="r-nick" type="text" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nick på tre bokstaver" placeholder="ABC">
+        <button class="stor" id="b-nick">LAGRE</button>
+      </div>
+    </div>
     <ul id="r-stat"></ul>
     <button class="stor" id="b-igjen2">KJØR IGJEN</button>
     <button class="sekundaer" id="b-meny2">Hovedmeny</button>
+    <button class="sekundaer" id="b-tl2" hidden>🏆 Toppliste</button>
     <p class="hint"><span class="pc">Mellomrom for ny tur · H for hovedmeny</span><span class="mob">Ny tur tar ett trykk</span></p>
     <div class="vm-reklame">ALPIN-VM PÅ NRK<small>Crans-Montana, Sveits · 1.–14. februar 2027</small><a id="se-vm" href="#" target="_blank" rel="noopener" hidden>Se alpin-VM</a></div>
+  </div>
+</div>
+
+<div id="toppliste" class="lag" role="dialog" aria-label="Toppliste">
+  <div class="kort">
+    <div class="tl-tittel">🏆 TOPPLISTE</div>
+    <div id="tl-faner" role="group" aria-label="Velg gren"></div>
+    <ol id="tl-liste"></ol>
+    <p id="tl-status" class="hint"></p>
+    <button class="sekundaer" id="b-tl-lukk">Lukk</button>
   </div>
 </div>
 
@@ -274,6 +316,7 @@ const DISIPLINER = {
 };
 const DISIPLIN_REKKE = ['slalam', 'storslalam', 'superg', 'utfor'];
 let disiplin = 'storslalam';
+const TOPPLISTE_URL = 'https://script.google.com/macros/s/AKfycbyeDtCivbh-MWr2RGIqPBW_3MwBLS-v8IKEs4RNjF22J8rrJ3vrKtRc_GsHnHJ4sJ7FoQ/exec';                              // adressen til Apps Script-tjenesten (se toppliste-oppsett.md). Tom = toppliste av
 const SE_VM_URL = '';                                   // lenke til «Se alpin-VM», settes når den er avklart
 const LAGRING = 'alpinvm2027-v1';
 // Ansiktene til Ekspert-Lars og Kommentator-Carlan (utklipp fra et bilde, hjelm og briller med)
@@ -773,9 +816,11 @@ const erH = k => k === 'ArrowRight' || k === 'd' || k === 'D';
 const erN = k => k === 'ArrowDown' || k === 's' || k === 'S';
 window.addEventListener('keydown', e => {
   const k = e.key;
+  if (e.target && e.target.tagName === 'INPUT') return;   // skriving i nick-feltet skal ikke styre spillet
   if (erV(k)) { taster.v = true; e.preventDefault(); }
   else if (erH(k)) { taster.h = true; e.preventDefault(); }
   else if (erN(k)) { taster.ned = true; e.preventDefault(); }
+  else if ($('toppliste').classList.contains('vis')) { if (k === 'Escape' || k === 'Enter' || k === ' ') { e.preventDefault(); lukkToppliste(); } return; }
   else if ($('regler').classList.contains('vis')) { if (k === 'Escape' || k === 'Enter' || k === ' ') { e.preventDefault(); lukkRegler(); } return; }
   else if (k === ' ' || k === 'Enter') {
     e.preventDefault();
@@ -1239,6 +1284,7 @@ function visResultat() {
   const med = $('r-medalje');
   med.className = 'medalje ' + (m || 'ingen');
   med.textContent = { gull: 'GULL', solv: 'SØLV', bronse: 'BRONSE' }[m] || 'I MÅL';
+  $('r-gren').textContent = DISIPLINER[disiplin].ikon + ' ' + DISIPLINER[disiplin].navn;
   $('r-tid').textContent = fmt(maltid);
   const diff = $('r-diff');
   if (forrige === null) { diff.textContent = 'Første tur!'; diff.className = ''; }
@@ -1262,10 +1308,119 @@ function visResultat() {
   rader.forEach(t => { const li = document.createElement('li'); li.textContent = t; st.append(li); });
   $('resultat').classList.add('vis');
   oppdaterPers();
+  tilbudToppliste();
 }
 function oppdaterPers() {
   const b = beste();
   $('pers').textContent = b ? 'Din pers på ' + DISIPLINER[disiplin].navn.toLowerCase() + ': ' + fmt(b.tid) + ({ gull: ' · 🥇', solv: ' · 🥈', bronse: ' · 🥉' }[medalje(b.tid)] || '') : 'Gull under ' + fmt(MEDALJE.gull) + '. Klarer du det?';
+}
+// ---------- Toppliste (Google Sheets via Apps Script, uten innlogging) ----------
+// Protokoll (alt er GET, så det ikke trengs preflight): ?handling=liste  eller  ?handling=send&gren=..&nick=ABC&tid=31.234
+// Svar: { ok: true, liste: { slalam: [{ nick, tid }, ...], ... } }  (maks 10 per gren, beste tid per nick)
+const TL_ANTALL = 10;
+const tl = { data: null };
+let turId = 0, tlFane = null, tlTilbud = null;
+const tlPaa = () => !!TOPPLISTE_URL;
+const tlMin = g => DISIPLINER[g].medalje.gull * 0.8;      // raskere enn dette regnes som umulig (samme grense i Apps Script)
+const tlNickOk = n => /^[A-ZÆØÅ]{3}$/.test(n);
+async function tlKall(param) {
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
+  try {
+    const r = await fetch(TOPPLISTE_URL + (TOPPLISTE_URL.includes('?') ? '&' : '?') + new URLSearchParams(param), { cache: 'no-store', signal: ctl.signal });
+    const j = await r.json();
+    if (!j || !j.ok) { const e = new Error((j && j.feil) || 'avvist'); e.avvist = true; throw e; }
+    tl.data = j.liste;
+    return j.liste;
+  } finally { clearTimeout(to); }
+}
+async function tlSendVentende() {
+  const v = lagret.ventende || [];
+  while (v.length) {
+    try { await tlKall(Object.assign({ handling: 'send' }, v[0])); v.shift(); skriv(); }
+    catch (e) { if (e.avvist) { v.shift(); skriv(); } else return; }
+  }
+}
+async function tlHent() { await tlSendVentende(); return tlKall({ handling: 'liste' }); }
+function tlListe(g) { return (tl.data && tl.data[g]) || []; }
+function tlPlass(g, tid) {   // 0-indeksert plass tiden ville fått (egen eldre tid regnes ikke med)
+  const l = tlListe(g).filter(x => x.nick !== lagret.nick);
+  let i = 0; while (i < l.length && l[i].tid <= tid) i++;
+  return i;
+}
+async function tilbudToppliste() {
+  const boks = $('r-topp'), tekst = $('r-topp-tekst'), skjema = $('r-topp-skjema');
+  boks.hidden = true; skjema.hidden = true; tlTilbud = null;
+  if (!tlPaa() || maltid < tlMin(disiplin)) return;
+  const mitt = ++turId, g = disiplin, tid = maltid;
+  const levende = () => mitt === turId && tilstand === 'mal';
+  boks.hidden = false; tekst.textContent = 'Sjekker topplista …';
+  try { await tlHent(); } catch (e) { if (levende()) tekst.textContent = 'Fikk ikke kontakt med topplista.'; return; }
+  if (!levende()) return;
+  const eget = tlListe(g).find(x => x.nick === lagret.nick);
+  const plass = tlPlass(g, tid);
+  if (eget && eget.tid <= tid) { tekst.textContent = 'Din beste på topplista er ' + fmt(eget.tid) + '.'; return; }
+  if (plass >= TL_ANTALL) { const sist = tlListe(g)[TL_ANTALL - 1]; tekst.textContent = 'Topp 10 på ' + DISIPLINER[g].navn.toLowerCase() + ' krever under ' + fmt(sist.tid) + '.'; return; }
+  tlTilbud = { g, tid };
+  tekst.textContent = '🏆 TOPP 10! Plass ' + (plass + 1) + ' på ' + DISIPLINER[g].navn.toLowerCase() + '. Skriv inn nicket ditt (tre bokstaver):';
+  const inn = $('r-nick'); inn.value = lagret.nick || '';
+  skjema.hidden = false; $('b-nick').disabled = false;
+  if (!document.body.classList.contains('touch')) inn.focus({ preventScroll: true });
+}
+async function tlLagre() {
+  if (!tlTilbud) return;
+  const inn = $('r-nick'), tekst = $('r-topp-tekst'), { g, tid } = tlTilbud;
+  const nick = inn.value;
+  if (!tlNickOk(nick)) { tekst.textContent = 'Nicket må være tre bokstaver (A–Å).'; inn.focus(); return; }
+  lagret.nick = nick; skriv();
+  $('b-nick').disabled = true; inn.blur();
+  const param = { handling: 'send', gren: g, nick, tid: tid.toFixed(3) };
+  try {
+    const l = await tlKall(param);
+    tlTilbud = null; $('r-topp-skjema').hidden = true;
+    const i = (l[g] || []).findIndex(x => x.nick === nick && Math.abs(x.tid - tid) < 0.0005);
+    tekst.textContent = i >= 0 ? '✅ Lagret! ' + nick + ' er nå nr. ' + (i + 1) + ' på topplista.' : '✅ Lagret.';
+  } catch (e) {
+    if (e.avvist) { tlTilbud = null; $('r-topp-skjema').hidden = true; tekst.textContent = 'Tiden ble ikke godkjent av topplista.'; }
+    else { (lagret.ventende = lagret.ventende || []).push({ handling: 'send', gren: g, nick, tid: param.tid }); skriv(); tlTilbud = null; $('r-topp-skjema').hidden = true; tekst.textContent = 'Ingen kontakt akkurat nå. Tiden sendes neste gang topplista åpnes.'; }
+  }
+}
+function tegnToppliste() {
+  const faner = $('tl-faner');
+  if (!faner.children.length) for (const id of DISIPLIN_REKKE) {
+    const k = document.createElement('button'); k.type = 'button'; k.dataset.gren = id; k.textContent = DISIPLINER[id].ikon + ' ' + DISIPLINER[id].navn;
+    k.addEventListener('click', e => { e.currentTarget.blur(); tlFane = id; tegnToppliste(); });
+    faner.append(k);
+  }
+  faner.querySelectorAll('button').forEach(k => k.setAttribute('aria-pressed', k.dataset.gren === tlFane ? 'true' : 'false'));
+  const ol = $('tl-liste'); ol.replaceChildren();
+  const l = tlListe(tlFane);
+  l.forEach((x, i) => {
+    const li = document.createElement('li'); if (x.nick === lagret.nick) li.className = 'meg';
+    [['pl', String(i + 1)], ['nk', x.nick], ['ti', fmt(x.tid)]].forEach(([c, t]) => { const sp = document.createElement('span'); sp.className = c; sp.textContent = t; li.append(sp); });
+    ol.append(li);
+  });
+}
+async function apneToppliste() {
+  if (!tlPaa()) return;
+  tlFane = tlFane || disiplin;
+  const st = $('tl-status');
+  $('toppliste').classList.add('vis'); tegnToppliste();
+  st.textContent = tl.data ? 'Oppdaterer …' : 'Henter topplista …';
+  try { await tlHent(); st.textContent = tlListe(tlFane).length ? '' : 'Ingen tider her ennå. Bli den første!'; }
+  catch (e) { st.textContent = 'Fikk ikke kontakt med topplista. Prøv igjen senere.'; }
+  tegnToppliste();
+  if (!st.textContent && !tlListe(tlFane).length) st.textContent = 'Ingen tider her ennå. Bli den første!';
+}
+function lukkToppliste() { $('toppliste').classList.remove('vis'); }
+if (tlPaa()) {
+  $('b-tl').hidden = false; $('b-tl2').hidden = false;
+  $('b-tl').addEventListener('click', e => { e.currentTarget.blur(); tlFane = disiplin; apneToppliste(); });
+  $('b-tl2').addEventListener('click', e => { e.currentTarget.blur(); tlFane = disiplin; apneToppliste(); });
+  $('b-tl-lukk').addEventListener('click', e => { e.currentTarget.blur(); lukkToppliste(); });
+  $('b-nick').addEventListener('click', tlLagre);
+  $('r-nick').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-ZÆØÅ]/g, '').slice(0, 3); });
+  $('r-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tlLagre(); } else if (e.key === 'Escape') e.target.blur(); });
+  tlSendVentende();
 }
 const IKON_LYD = p => '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="#fff"/>' + (p
   ? '<path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>'
