@@ -149,8 +149,10 @@
   .topp { margin: 8px 16px 4px; padding: 8px 10px; border: 3px solid var(--navy); border-radius: 14px; background: #fff7d6; }
   .topp-tekst { font-weight: 900; font-size: 15px; line-height: 1.3; }
   .topp-skjema { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 8px; }
-  #r-nick { width: 5.2ch; box-sizing: content-box; font: 900 34px var(--font); letter-spacing: .18em; text-align: center; text-transform: uppercase; color: var(--navy); background: #fff; border: 3px solid var(--navy); border-radius: 10px; padding: 2px 4px 2px 10px; }
-  #r-nick::placeholder { color: #c3cbdc; }
+  #r-nick, #tl-nick { width: 5.2ch; box-sizing: content-box; font: 900 34px var(--font); letter-spacing: .18em; text-align: center; text-transform: uppercase; color: var(--navy); background: #fff; border: 3px solid var(--navy); border-radius: 10px; padding: 2px 4px 2px 10px; }
+  #tl-pers-tekst { white-space: pre-line; }
+  #tl-pers { margin-top: 12px; }
+  #r-nick::placeholder, #tl-nick::placeholder { color: #c3cbdc; }
   .topp .stor { font-size: 16px; padding: 10px 18px; }
   .tl-tittel { font-size: 34px; font-weight: 900; color: var(--navy); background: var(--gull); padding: 10px 0 6px; letter-spacing: .08em; border-bottom: 4px solid var(--navy); }
   #tl-faner { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 12px 10px 6px; }
@@ -272,6 +274,14 @@
     <div id="tl-faner" role="group" aria-label="Velg gren"></div>
     <ol id="tl-liste"></ol>
     <p id="tl-status" class="hint"></p>
+    <button class="sekundaer" id="b-tl-pers" hidden>📤 Send inn din pers</button>
+    <div id="tl-pers" class="topp" hidden>
+      <div id="tl-pers-tekst" class="topp-tekst"></div>
+      <div class="topp-skjema">
+        <input id="tl-nick" type="text" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nick på tre bokstaver" placeholder="ABC">
+        <button class="stor" id="b-tl-send">SEND INN</button>
+      </div>
+    </div>
     <button class="sekundaer" id="b-tl-lukk">Lukk</button>
   </div>
 </div>
@@ -1392,6 +1402,7 @@ function tegnToppliste() {
     faner.append(k);
   }
   faner.querySelectorAll('button').forEach(k => k.setAttribute('aria-pressed', k.dataset.gren === tlFane ? 'true' : 'false'));
+  $('b-tl-pers').hidden = !tlPersListe().length || !$('tl-pers').hidden;
   const ol = $('tl-liste'); ol.replaceChildren();
   const l = tlListe(tlFane);
   l.forEach((x, i) => {
@@ -1411,13 +1422,48 @@ async function apneToppliste() {
   tegnToppliste();
   if (!st.textContent && !tlListe(tlFane).length) st.textContent = 'Ingen tider her ennå. Bli den første!';
 }
-function lukkToppliste() { $('toppliste').classList.remove('vis'); }
+function lukkToppliste() { $('toppliste').classList.remove('vis'); $('tl-pers').hidden = true; }
+// Send inn pers som allerede ligger lagret i denne nettleseren (fra før topplista fantes)
+function tlPersListe() { return DISIPLIN_REKKE.filter(g => lagret.rekorder[g] && lagret.rekorder[g].tid >= tlMin(g)).map(g => ({ g, tid: lagret.rekorder[g].tid })); }
+function visPersSkjema() {
+  const l = tlPersListe();
+  $('tl-pers-tekst').textContent = 'Din pers:\n' + l.map(x => DISIPLINER[x.g].ikon + ' ' + DISIPLINER[x.g].navn + ' ' + fmt(x.tid)).join('\n') + '\nSkriv nicket ditt (tre bokstaver) for å sette dem på topplista:';
+  $('tl-nick').value = lagret.nick || ''; $('b-tl-send').disabled = false;
+  $('tl-pers').hidden = false; $('b-tl-pers').hidden = true;
+  if (!document.body.classList.contains('touch')) $('tl-nick').focus({ preventScroll: true });
+}
+async function sendPers() {
+  const tekst = $('tl-pers-tekst'), nick = $('tl-nick').value, l = tlPersListe();
+  if (!tlNickOk(nick)) { tekst.textContent = 'Nicket må være tre bokstaver (A–Å).'; return; }
+  lagret.nick = nick; skriv(); $('b-tl-send').disabled = true; $('tl-nick').blur();
+  const rader = [];
+  for (const x of l) {
+    const navn = DISIPLINER[x.g].ikon + ' ' + DISIPLINER[x.g].navn + ' ' + fmt(x.tid);
+    tekst.textContent = rader.concat(['Sender ' + navn + ' …']).join('\n');
+    const param = { handling: 'send', gren: x.g, nick, tid: x.tid.toFixed(3) };
+    try {
+      const lst = await tlKall(param);
+      const i = (lst[x.g] || []).findIndex(y => y.nick === nick && Math.abs(y.tid - x.tid) < 0.0005);
+      rader.push(navn + (i >= 0 ? ' → nr. ' + (i + 1) : ' → registrert, men ikke topp 10'));
+    } catch (e) {
+      if (e.avvist) rader.push(navn + ' → ikke godkjent');
+      else { (lagret.ventende = lagret.ventende || []).push(param); skriv(); rader.push(navn + ' → ingen kontakt, sendes senere'); }
+    }
+  }
+  tekst.textContent = '✅ Ferdig:\n' + rader.join('\n');
+  $('tl-pers').querySelector('.topp-skjema').hidden = true;
+  tegnToppliste();
+}
 if (tlPaa()) {
   $('b-tl').hidden = false; $('b-tl2').hidden = false;
   $('b-tl').addEventListener('click', e => { e.currentTarget.blur(); tlFane = disiplin; apneToppliste(); });
   $('b-tl2').addEventListener('click', e => { e.currentTarget.blur(); tlFane = disiplin; apneToppliste(); });
   $('b-tl-lukk').addEventListener('click', e => { e.currentTarget.blur(); lukkToppliste(); });
   $('b-nick').addEventListener('click', tlLagre);
+  $('b-tl-pers').addEventListener('click', e => { e.currentTarget.blur(); $('tl-pers').querySelector('.topp-skjema').hidden = false; visPersSkjema(); });
+  $('b-tl-send').addEventListener('click', sendPers);
+  $('tl-nick').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-ZÆØÅ]/g, '').slice(0, 3); });
+  $('tl-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendPers(); } else if (e.key === 'Escape') e.target.blur(); });
   $('r-nick').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-ZÆØÅ]/g, '').slice(0, 3); });
   $('r-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tlLagre(); } else if (e.key === 'Escape') e.target.blur(); });
   tlSendVentende();
