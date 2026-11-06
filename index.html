@@ -1329,17 +1329,25 @@ function oppdaterPers() {
 // Svar: { ok: true, liste: { slalam: [{ nick, tid }, ...], ... } }  (maks 10 per gren, beste tid per nick)
 const TL_ANTALL = 10;
 const tl = { data: null };
+// Sist hentede liste huskes på maskinen, så topplista vises med en gang mens den oppdateres (Google-tjenesten kan bruke flere sekunder)
+const TL_LAGER = 'avmToppliste';
+try { tl.data = JSON.parse(localStorage.getItem(TL_LAGER) || 'null'); } catch (e) {}
+// nrk-stash tillater ikke kontakt med Google (CSP connect-src 'self'): topplista virker bare på GitHub-adressen
+const TL_STASH = typeof TL_STASH_TEST !== 'undefined' ? !!TL_STASH_TEST : /(^|\.)nrk-stash\.dev$/.test(location.hostname);   // TL_STASH_TEST: bare for automatiske tester
+const TL_GITHUB = 'https://carlandreaswold-collab.github.io/alpin-vm-spill/';
 let turId = 0, tlFane = null, tlTilbud = null;
 const tlPaa = () => !!TOPPLISTE_URL;
 const tlMin = g => DISIPLINER[g].medalje.gull * 0.8;      // raskere enn dette regnes som umulig (samme grense i Apps Script)
 const tlNickOk = n => /^[A-ZÆØÅ]{3}$/.test(n);
 async function tlKall(param) {
-  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
+  if (TL_STASH) throw new Error('blokkert på nrk-stash');
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
   try {
     const r = await fetch(TOPPLISTE_URL + (TOPPLISTE_URL.includes('?') ? '&' : '?') + new URLSearchParams(param), { cache: 'no-store', signal: ctl.signal });
     const j = await r.json();
     if (!j || !j.ok) { const e = new Error((j && j.feil) || 'avvist'); e.avvist = true; throw e; }
     tl.data = j.liste;
+    try { localStorage.setItem(TL_LAGER, JSON.stringify(j.liste)); } catch (e) {}
     return j.liste;
   } finally { clearTimeout(to); }
 }
@@ -1361,6 +1369,7 @@ async function tilbudToppliste() {
   const boks = $('r-topp'), tekst = $('r-topp-tekst'), skjema = $('r-topp-skjema');
   boks.hidden = true; skjema.hidden = true; tlTilbud = null;
   if (!tlPaa() || maltid < tlMin(disiplin)) return;
+  if (TL_STASH) { boks.hidden = false; tekst.textContent = 'Topplista virker ikke her. Spill på ' + TL_GITHUB.replace('https://', '') + ' for å komme på listen.'; return; }
   const mitt = ++turId, g = disiplin, tid = maltid;
   const levende = () => mitt === turId && tilstand === 'mal';
   boks.hidden = false; tekst.textContent = 'Sjekker topplista …';
@@ -1416,9 +1425,14 @@ async function apneToppliste() {
   tlFane = tlFane || disiplin;
   const st = $('tl-status');
   $('toppliste').classList.add('vis'); tegnToppliste();
-  st.textContent = tl.data ? 'Oppdaterer …' : 'Henter topplista …';
+  if (TL_STASH) {
+    st.textContent = 'Topplista virker ikke på nrk-stash. Åpne spillet her for å se og sende inn tider: ';
+    const a = document.createElement('a'); a.href = TL_GITHUB; a.textContent = TL_GITHUB.replace('https://', ''); a.target = '_blank'; a.rel = 'noopener'; st.append(a);
+    return;
+  }
+  st.textContent = tl.data ? 'Oppdaterer …' : 'Henter topplista … (kan ta noen sekunder)';
   try { await tlHent(); st.textContent = tlListe(tlFane).length ? '' : 'Ingen tider her ennå. Bli den første!'; }
-  catch (e) { st.textContent = 'Fikk ikke kontakt med topplista. Prøv igjen senere.'; }
+  catch (e) { st.textContent = tl.data ? 'Viser sist hentede liste. Fikk ikke kontakt akkurat nå.' : 'Fikk ikke kontakt med topplista. Prøv igjen senere.'; }
   tegnToppliste();
   if (!st.textContent && !tlListe(tlFane).length) st.textContent = 'Ingen tider her ennå. Bli den første!';
 }
@@ -1466,7 +1480,7 @@ if (tlPaa()) {
   $('tl-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendPers(); } else if (e.key === 'Escape') e.target.blur(); });
   $('r-nick').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-ZÆØÅ]/g, '').slice(0, 3); });
   $('r-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tlLagre(); } else if (e.key === 'Escape') e.target.blur(); });
-  tlSendVentende();
+  if (!TL_STASH) setTimeout(() => { tlHent().catch(() => {}); }, 800);   // henter lista i bakgrunnen: varmer opp tjenesten og fyller hurtiglageret
 }
 const IKON_LYD = p => '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="#fff"/>' + (p
   ? '<path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>'
